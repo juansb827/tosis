@@ -16,6 +16,8 @@
 
 package org.tensorflow.demo;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -117,6 +119,32 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   }
 
   private static final float TEXT_SIZE_DIP = 10;
+
+
+
+  public List<Classifier.Recognition> classifyImg(Bitmap bitmap, AssetManager asset) {
+    classifier =
+            TensorFlowImageClassifier.create(
+                    asset,
+                    MODEL_FILE,
+                    LABEL_FILE,
+                    INPUT_SIZE,
+                    IMAGE_MEAN,
+                    IMAGE_STD,
+                    INPUT_NAME,
+                    OUTPUT_NAME);
+
+
+    List<Classifier.Recognition> results = classifier.recognizeImage(bitmap);
+    return results;
+
+  }
+
+  public ClassifierActivity(){
+
+  }
+
+
 
   @Override
   public void onPreviewSizeChosen(final Size size, final int rotation) {

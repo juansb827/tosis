@@ -76,13 +76,12 @@ android {
                 implementation 'com.android.support:appcompat-v7:27.0.0'
                 implementation 'com.android.support.constraint:constraint-layout:1.1.0'
                 compile 'org.tensorflow:tensorflow-android:1.2.0-preview'
-                implementation ('com.parrot:arsdk:3.13.1') {
+                implementation('com.parrot:arsdk:3.13.1') {
                     exclude group: 'com.android.support'
                     exclude module: 'appcompat-v7'
                     exclude module: 'support-v4'
                 }
             }
-
 
 
         }
@@ -95,4 +94,8 @@ android {
 
 repositories {
     google()
+}
+
+dependencies {
+    implementation 'com.android.support.constraint:constraint-layout:+'
 }

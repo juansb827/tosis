@@ -176,6 +176,34 @@ public class SDCardModule {
         }
     }
 
+    public void getLastNMedias(final int n) {
+        if (!mThreadIsRunning) {
+            mThreadIsRunning = true;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ArrayList<ARDataTransferMedia> mediaList = getMediaList();
+
+                    ArrayList<ARDataTransferMedia> mediasAfterDate = null;
+                    mNbMediasToDownload = 0;
+                    if ((mediaList != null) && !mIsCancelled) {
+                        mediasAfterDate = filterAfterDateMedia( mediaList, n);
+                        mNbMediasToDownload = mediasAfterDate.size();
+                    }
+
+                    notifyMatchingMediasFound(mNbMediasToDownload);
+
+                    if ((mediasAfterDate != null) && (mNbMediasToDownload != 0) && !mIsCancelled) {
+                        downloadMedias(mediasAfterDate);
+                    }
+
+                    mThreadIsRunning = false;
+                    mIsCancelled = false;
+                }
+            }).start();
+        }
+    }
+
     public void cancelGetFlightMedias() {
         if (mThreadIsRunning) {
             mIsCancelled = true;
@@ -237,6 +265,17 @@ public class SDCardModule {
         }
 
         return matchingMedias;
+    }
+
+    private ArrayList<ARDataTransferMedia> filterAfterDateMedia(ArrayList<ARDataTransferMedia> mediaList, int n){
+        ArrayList<ARDataTransferMedia> matchingMedias = new ArrayList<>();
+        if(n>mediaList.size())
+            return matchingMedias;
+        for(int i = mediaList.size() -1; i >=mediaList.size()-n ;i--){  //(n-1... )
+            matchingMedias.add(mediaList.get(i));
+        }
+        return matchingMedias;
+
     }
 
     private ArrayList<ARDataTransferMedia> getDateMatchingMedias(ArrayList<ARDataTransferMedia> mediaList,

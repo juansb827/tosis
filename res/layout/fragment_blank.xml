@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".BlankFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/button5"
+            android:layout_width="154dp"
+            android:layout_height="wrap_content"
+
+            android:text="Start Monitoring"
+
+            tools:layout_editor_absoluteX="429dp"
+            tools:layout_editor_absoluteY="246dp" />
+
+        <Button
+            android:id="@+id/button4"
+            android:layout_width="154dp"
+
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="Emergency Stop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_editor_absoluteX="429dp"
+            tools:layout_editor_absoluteY="337dp" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="807dp"
+            android:layout_height="394dp"
+            android:src="@drawable/flowers"
+            tools:layout_editor_absoluteX="-107dp"
+            tools:layout_editor_absoluteY="0dp" />
+
+        <Button
+            android:id="@+id/button6"
+            android:layout_width="154dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="CHANGE PATH"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_editor_absoluteX="429dp"
+            tools:layout_editor_absoluteY="294dp" />
+
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="87dp"
+            android:layout_height="56dp"
+            android:src="@drawable/record"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="16dp" />
+
+    </android.support.constraint.ConstraintLayout>
+
+</FrameLayout>

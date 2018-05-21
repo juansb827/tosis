@@ -1,19 +1,30 @@
 package org.tensorflow.demo.drone;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.YuvImage;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_STREAM_CODEC_TYPE_ENUM;
 import com.parrot.arsdk.arcontroller.ARControllerCodec;
 import com.parrot.arsdk.arcontroller.ARFrame;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -36,6 +47,8 @@ public class H264VideoView extends SurfaceView implements SurfaceHolder.Callback
     private static final int VIDEO_WIDTH = 640;
     private static final int VIDEO_HEIGHT = 368;
 
+    ARFrame mFrame ;
+
     public H264VideoView(Context context) {
         super(context);
         customInit();
@@ -54,9 +67,95 @@ public class H264VideoView extends SurfaceView implements SurfaceHolder.Callback
     private void customInit() {
         mReadyLock = new ReentrantLock();
         getHolder().addCallback(this);
+
+
+        this.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
     }
 
+    public void downloadImg(Context c,byte[] bytes ){
+
+
+
+
+        File pictureFile = getOutputMediaFile(c);
+        if (pictureFile == null) {
+            Log.d(TAG,
+                    "Error creating media file, check storage permissions: ");// e.getMessage());
+            return;
+        }
+        try {
+            FileOutputStream fos = new FileOutputStream(pictureFile);
+            this.setDrawingCacheEnabled(true);
+            this.buildDrawingCache();
+
+
+            Bitmap b = BitmapFactory.decodeByteArray( bytes, 0, bytes.length);
+            b.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+            fos.flush();
+            fos.close();
+            Log.e(TAG, "DOwnlaod image :v  ");
+
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "File not found: " + e.getMessage());
+        } catch (IOException e) {
+            Log.d(TAG, "Error accessing file: " + e.getMessage());
+        }
+
+
+
+    }
+
+    /** Create a File for saving an image or video */
+    private  File getOutputMediaFile(Context c){
+        // To be safe, you should check that the SDCard is mounted
+        // using Environment.getExternalStorageState() before doing this.
+        File mediaStorageDir = new File(Environment.getExternalStorageDirectory()
+                + "/Android/data/"
+                + c.getApplicationContext().getPackageName()
+                + "/Files");
+
+        // This location works best if you want the created images to be shared
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        if (! mediaStorageDir.exists()){
+            if (! mediaStorageDir.mkdirs()){
+                return null;
+            }
+        }
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmm").format(new Date());
+        File mediaFile;
+        String mImageName="MI_"+ timeStamp +".jpg";
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator + mImageName);
+
+        return mediaFile;
+    }
+
+    static boolean readImage = true;
     public void displayFrame(ARFrame frame) {
+        /*
+        if(readImage){
+            readImage = false;
+            byte[] bytes = frame.getByteData();
+
+            ByteBuffer b;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                b = mMediaCodec.getInputBuffer(index);
+            } else {
+                b = mBuffers[index];
+                b.clear();
+            }
+
+            downloadImg(H264VideoView.this.getContext(),bytes);
+        }
+        */
+
         mReadyLock.lock();
 
         if ((mMediaCodec != null)) {
@@ -107,6 +206,7 @@ public class H264VideoView extends SurfaceView implements SurfaceHolder.Callback
 
 
         mReadyLock.unlock();
+
     }
 
     public void configureDecoder(ARControllerCodec codec) {

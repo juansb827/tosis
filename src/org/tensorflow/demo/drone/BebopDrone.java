@@ -32,10 +32,14 @@ import com.parrot.arsdk.arutils.ARUtilsException;
 import com.parrot.arsdk.arutils.ARUtilsManager;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class BebopDrone {
     private static final String TAG = "BebopDrone";
+
+    private int takenPictures;
 
     public interface Listener {
         /**
@@ -122,6 +126,7 @@ public class BebopDrone {
         mContext = context;
         mListeners = new ArrayList<>();
         mDeviceService = deviceService;
+        takenPictures = 0;
 
         // needed because some callbacks will be called on the main thread
         mHandler = new Handler(context.getMainLooper());
@@ -232,6 +237,7 @@ public class BebopDrone {
 
     public void takeOff() {
         if ((mDeviceController != null) && (mState.equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+            takenPictures = 0;
             mDeviceController.getFeatureARDrone3().sendPilotingTakeOff();
         }
     }
@@ -251,6 +257,7 @@ public class BebopDrone {
     public void takePicture() {
         if ((mDeviceController != null) && (mState.equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
             mDeviceController.getFeatureARDrone3().sendMediaRecordPictureV2();
+            takenPictures++;
         }
     }
 
@@ -304,13 +311,22 @@ public class BebopDrone {
      * If no run id is available, download all medias of the day
      */
     public void getLastFlightMedias() {
+
+        mSDCardModule.getLastNMedias(takenPictures);
+        /*
         String runId = mCurrentRunId;
         if ((runId != null) && !runId.isEmpty()) {
             mSDCardModule.getFlightMedias(runId);
         } else {
             Log.e(TAG, "RunID not available, fallback to the day's medias");
             mSDCardModule.getTodaysFlightMedias();
-        }
+        } */
+
+
+    }
+
+    public void getAfterDateMedias(int n) {
+
     }
 
     public void cancelGetLastFlightMedias() {
