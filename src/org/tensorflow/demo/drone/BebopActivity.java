@@ -10,12 +10,16 @@ import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
@@ -52,38 +56,11 @@ public class BebopActivity extends Activity {
     static ArrayList<String> photos = new ArrayList();
 
     private void processImages(String mediaName){
-        String MOBILE_MEDIA_FOLDER = "/ARSDKMedias/";
-        String externalDirectory = Environment.getExternalStorageDirectory().toString().concat(MOBILE_MEDIA_FOLDER);
-        Bitmap bitmap = BitmapFactory.decodeFile(externalDirectory + "/" + mediaName);
-        Bitmap b2 = getResizedBitmap(bitmap, 224, 224);
-        ClassifierActivity ca = new ClassifierActivity();
-        List<Classifier.Recognition> results = ca.classifyImg(b2, getAssets());
 
-        Log.e(TAG, "----Results ----");
-        for(Object o:results){
-            Log.e(TAG, o.toString());
-
-        }
-        // if the directory doesn't exist, create it
     }
 
 
-    public Bitmap getResizedBitmap(Bitmap bm, int newWidth, int newHeight) {
-        int width = bm.getWidth();
-        int height = bm.getHeight();
-        float scaleWidth = ((float) newWidth) / width;
-        float scaleHeight = ((float) newHeight) / height;
-        // CREATE A MATRIX FOR THE MANIPULATION
-        Matrix matrix = new Matrix();
-        // RESIZE THE BIT MAP
-        matrix.postScale(scaleWidth, scaleHeight);
 
-        // "RECREATE" THE NEW BITMAP
-        Bitmap resizedBitmap = Bitmap.createBitmap(
-                bm, 0, 0, width, height, matrix, false);
-        bm.recycle();
-        return resizedBitmap;
-    }
 
 
     private void startAnalysis(){
@@ -212,6 +189,7 @@ public class BebopActivity extends Activity {
         super.onDestroy();
     }
 
+    static int count = 0;
     private void initIHM() {
         mVideoView = (H264VideoView) findViewById(R.id.videoView);
 
@@ -411,6 +389,7 @@ public class BebopActivity extends Activity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         v.setPressed(true);
+                        Log.e("TOUCH", ++count+"");
                         mBebopDrone.setRoll((byte) -50);
                         mBebopDrone.setFlag((byte) 1);
                         break;
@@ -455,7 +434,135 @@ public class BebopActivity extends Activity {
             }
         });
 
+
+        findViewById(R.id.testBtn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText ed = findViewById(R.id.txtDistancia);
+                int dis = Integer.parseInt(ed.getText().toString());
+                moveDrone(dis);
+                /*
+                mBebopDrone.setGaz((byte) dis);
+                mBebopDrone.setGaz((byte) 0);
+                mBebopDrone.setRoll((byte) dis);
+                mBebopDrone.setFlag((byte) 1);
+                mBebopDrone.setRoll((byte) 0);
+                mBebopDrone.setFlag((byte) 0);
+
+                */
+
+            }
+        });
+
+
         mBatteryLabel = (TextView) findViewById(R.id.batteryLabel);
+    }
+
+    private void moveDrone(final int dist){
+
+
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        Runnable[] runnables= new Runnable[10];
+
+
+        Toast.makeText(BebopActivity.this, "Subiendo", Toast.LENGTH_SHORT).show();
+        mBebopDrone.setGaz((byte) 50);
+
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Para", Toast.LENGTH_SHORT).show();
+                mBebopDrone.setGaz((byte) 0);
+            }
+        },3000);
+
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Derecha", Toast.LENGTH_SHORT).show();
+                mBebopDrone.setRoll((byte) 50);
+                mBebopDrone.setFlag((byte) 1);
+            }
+        },5000);
+
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Para", Toast.LENGTH_SHORT).show();
+                mBebopDrone.setRoll((byte) 0);
+                mBebopDrone.setFlag((byte) 0);
+            }
+        }, 7000);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Derecha", Toast.LENGTH_SHORT).show();
+                mBebopDrone.setRoll((byte) 50);
+                mBebopDrone.setFlag((byte) 1);
+
+            }
+        }, 9000);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Para", Toast.LENGTH_SHORT).show();
+                mBebopDrone.setRoll((byte) 0);
+                mBebopDrone.setFlag((byte) 0);
+            }
+        },11000);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Bajando", Toast.LENGTH_SHORT).show();
+                mBebopDrone.setGaz((byte) -50);
+            }
+        },13000);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Para", Toast.LENGTH_SHORT).show();
+                mBebopDrone.setGaz((byte) 0);
+            }
+        },18000);
+
+
+        /*
+        for(int i=1;i<15;i++) {
+            final int x = i;
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    // acciones que se ejecutan tras los milisegundos
+                    int _dist = x % 2  == 0 ? 0: dist;
+                    int flag = x % 2;
+                    Toast.makeText(BebopActivity.this, "CMueve:"+_dist+"Flag:"+flag, Toast.LENGTH_SHORT).show();
+                    mBebopDrone.setFlag((byte) flag);
+                    mBebopDrone.setRoll((byte) _dist);
+
+                }
+            }, 300);
+        }
+        */
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                // acciones que se ejecutan tras los milisegundos
+                Toast.makeText(BebopActivity.this, "Para:"+dist, Toast.LENGTH_SHORT).show();
+                mBebopDrone.setRoll((byte) 0);
+                mBebopDrone.setFlag((byte) 0);
+            }
+        }, 2000);
+
+
+
+
+
     }
 
     private final BebopDrone.Listener mBebopListener = new BebopDrone.Listener() {

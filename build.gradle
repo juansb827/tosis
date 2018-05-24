@@ -29,6 +29,7 @@ buildscript {
 
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.0'
+        classpath 'com.google.gms:google-services:3.1.1'
     }
 }
 
@@ -75,7 +76,11 @@ android {
             dependencies {
                 implementation 'com.android.support:appcompat-v7:27.0.0'
                 implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+                implementation 'com.squareup.picasso:picasso:2.71828'
                 compile 'org.tensorflow:tensorflow-android:1.2.0-preview'
+                compile 'com.squareup.retrofit2:retrofit:2.4.0'
+                compile 'com.google.code.gson:gson:2.7'
+                compile 'com.squareup.retrofit2:converter-gson:2.1.0'
                 implementation('com.parrot:arsdk:3.13.1') {
                     exclude group: 'com.android.support'
                     exclude module: 'appcompat-v7'
@@ -98,4 +103,8 @@ repositories {
 
 dependencies {
     implementation 'com.android.support.constraint:constraint-layout:+'
+    implementation 'com.google.firebase:firebase-storage:11.8.0'
+    implementation 'com.google.firebase:firebase-auth:11.8.0'
 }
+
+apply plugin: 'com.google.gms.google-services'

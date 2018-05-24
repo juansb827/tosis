@@ -1,0 +1,59 @@
+{
+  "project_info": {
+    "project_number": "265686757481",
+    "firebase_url": "https://tosis-59152.firebaseio.com",
+    "project_id": "tosis-59152",
+    "storage_bucket": "tosis-59152.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:265686757481:android:c34f735ca96ab107",
+        "android_client_info": {
+          "package_name": "com.example.juan.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "265686757481-ijk8jd14tn8i0i32g3r7rvueekkuubrc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.juan.myapplication",
+            "certificate_hash": "e11488aaf1d301021c7ddb1a582ed6647584139e"
+          }
+        },
+        {
+          "client_id": "265686757481-ornt4c5c0hb1kcduso0i3ob5shva7494.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "265686757481-ornt4c5c0hb1kcduso0i3ob5shva7494.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDS1ZjZ1diVv0HcDqHzH-gbyWobxz5NZKA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "265686757481-ornt4c5c0hb1kcduso0i3ob5shva7494.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
