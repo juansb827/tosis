@@ -38,15 +38,19 @@
             android:name=".drone.DeviceListActivity"
             android:label="@string/activity_name_classification"
             android:screenOrientation="portrait">
+
+        </activity>
+        <activity android:name=".drone.BebopActivity"></activity>
+        <activity android:name=".ProcessingActivty">
+
+        </activity>
+
+        <activity android:name=".DroneTempActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity android:name=".drone.BebopActivity"></activity>
-        <activity android:name=".ProcessingActivty">
-
         </activity>
     </application>
 
