@@ -23,6 +23,9 @@ import retrofit2.http.Part;
 public interface ApiService {
 
     @POST("/m2m/applications/Cultivo/containers/containerImagenes/contentInstances/")
+    Call<ResponseMessage> saveFlightData(@Body FlightData flightData);
+
+    @POST("/m2m/applications/Cultivo/containers/containerImagenes/contentInstances/")
     Call<ResponseMessage> saveIntereses(@Body Pedido pedido);
 
     @POST("/m2m/applications/Cultivo/containers/containerImagenes/contentInstances/")
@@ -65,6 +68,21 @@ public interface ApiService {
         public String getLugar(){ return lugar;}
 
 
+    }
+
+    class FlightData {
+
+        String flightId;
+        String imgUrl;
+        String[] tags;
+        String[] tagsScore;
+
+        public FlightData(String flightId, String imgUrl, String[] tags, String[] tagsScore) {
+            this.flightId = flightId;
+            this.imgUrl = imgUrl;
+            this.tags = tags;
+            this.tagsScore = tagsScore;
+        }
     }
 
 

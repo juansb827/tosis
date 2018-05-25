@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.util.Base64;
@@ -60,8 +62,26 @@ public class ProcessingActivty extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        String[] images = new String[]{"dsad","ds"}; //,"sadas", "dsad", "sadas"
-        uploadImages(images);
+
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        final String[] images = new String[16]; //,"sadas", "dsad", "sadas"
+        createProgressDialog(images.length);
+        connect();
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+                for(int i=0;i<16;i++){
+                    images[i] = "pepe.jpg";
+                }
+                mUploadProgressDialog.setMessage("Sending Information");
+                uploadImages(images);
+            }
+        },4000);
+
+
     }
 
     private void connect(){
@@ -84,11 +104,17 @@ public class ProcessingActivty extends Activity {
         int netId = wifiManager.addNetwork(conf);
         wifiManager.disconnect();
         wifiManager.enableNetwork(netId, true);
+
         wifiManager.reconnect();
 
 
 
 
+    }
+
+    private void sendToMtc(ApiService.FlightData flightData,Callback<ApiService.ResponseMessage> callback){
+        Call<ApiService.ResponseMessage> call= RetrofitClient.getInstance().getApiService().saveFlightData(flightData);
+        call.enqueue(callback);
     }
     private void save(){
 
@@ -157,7 +183,7 @@ public class ProcessingActivty extends Activity {
         mUploadProgressDialog = new ProgressDialog(this);
         mUploadProgressDialog.setIndeterminate(false);
         mUploadProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mUploadProgressDialog.setMessage("Proccesing  Images");
+        mUploadProgressDialog.setMessage("Changing Network ...");
         mUploadProgressDialog.setMax(max);
         mUploadProgressDialog.setSecondaryProgress(0);
         mUploadProgressDialog.setCancelable(false);
@@ -166,6 +192,7 @@ public class ProcessingActivty extends Activity {
 
     private void upadateProgressDialog(int progress){
         mUploadProgressDialog.setSecondaryProgress(progress);
+        mUploadProgressDialog.setProgress(progress);
 
     }
 
@@ -178,15 +205,16 @@ public class ProcessingActivty extends Activity {
         uploadedImages = 0;
         final String[] imgsUrls = new String[images.length];
         List<Classifier.Recognition>[] results = new List[images.length];
-        createProgressDialog(images.length);
+
 
         String externalDirectory = Environment.getExternalStorageDirectory().toString().concat(MOBILE_MEDIA_FOLDER);
         String storageFolderName = (new Date())+"";
+        final String flightId = UUID.randomUUID().toString();
         for(int i=0;i<images.length;i++){
             final int _i=i;
 
-            final Bitmap bm = getResizedBitmap(externalDirectory + "/" + "Pepe.jpg");
-            results[i] = classifyImage(bm);
+            final Bitmap bm = getResizedBitmap(externalDirectory + "/" + images[_i]);
+
 
 
             uploadBitmap(bm, storageFolderName, UUID.randomUUID() +".jpg")
@@ -195,16 +223,45 @@ public class ProcessingActivty extends Activity {
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                             // Get a URL to the uploaded content
                             Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                            synchronized (this){
+                                final List<Classifier.Recognition> result = classifyImage(bm);
                                 bm.recycle();
                                 imgsUrls[_i] = downloadUrl.toString();
-                                uploadedImages++;
-                                ProcessingActivty.this.upadateProgressDialog(uploadedImages);
-                                if(uploadedImages == images.length){ //all images uploaded
-                                    closeProgressDialog();
-                                    Log.e(TAG,"Finish uploading");
+                                String[] tags = new String[result.size()];
+                                String[] scores = new String[result.size()];
+                                Classifier.Recognition r = null;
+                                for(int i=0;i<result.size();i++){
+                                    r = result.get(i);
+                                    tags[i] = r.getTitle();
+                                    scores[i] = r.getConfidence()+"";
                                 }
-                            }
+
+                                ApiService.FlightData flightData = new ApiService.FlightData(
+                                        flightId,
+                                        downloadUrl.toString(),
+                                        tags,
+                                        scores
+
+                                );
+                                sendToMtc(flightData, new Callback<ApiService.ResponseMessage>() {
+                                    @Override
+                                    public void onResponse(Call<ApiService.ResponseMessage> call, Response<ApiService.ResponseMessage> response) {
+                                        synchronized (this){
+                                            uploadedImages++;
+                                            ProcessingActivty.this.upadateProgressDialog(uploadedImages);
+                                            if(uploadedImages == images.length){ //all images uploaded
+                                                closeProgressDialog();
+                                                Log.e(TAG,"Finish uploading");
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<ApiService.ResponseMessage> call, Throwable t) {
+
+                                    }
+                                });
+
+
 
                         }
                     })
@@ -274,7 +331,7 @@ public class ProcessingActivty extends Activity {
         while(pow<=num){
             pow = pow << 1;
         }
-        //here we got the nextPowOf2, so we must divide to get the previos one
+        //here are  nextPowOf2, so we must divide by 2
         return pow >> 1;
 
     }

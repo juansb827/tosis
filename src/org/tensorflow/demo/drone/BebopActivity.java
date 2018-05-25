@@ -4,20 +4,17 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,13 +25,10 @@ import com.parrot.arsdk.arcontroller.ARControllerCodec;
 import com.parrot.arsdk.arcontroller.ARFrame;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 
-import org.tensorflow.demo.Classifier;
-import org.tensorflow.demo.ClassifierActivity;
+import org.tensorflow.demo.ProcessingActivty;
 import org.tensorflow.demo.R;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 public class BebopActivity extends Activity {
     private static final String TAG = "BebopActivity";
@@ -48,12 +42,17 @@ public class BebopActivity extends Activity {
     private TextView mBatteryLabel;
     private Button mTakeOffLandBt;
     private Button mDownloadBt;
+    private boolean mStreamOn;
+    private boolean mAuto;
+    private boolean mManual;
 
     private int mNbMaxDownload;
     private int mCurrentDownloadIndex;
 
     /** Visaje starts*/
     static ArrayList<String> photos = new ArrayList();
+    private int mPathDuration;
+    private int mPath;
 
     private void processImages(String mediaName){
 
@@ -139,6 +138,7 @@ public class BebopActivity extends Activity {
 
 
 
+
     }
 
     @Override
@@ -191,6 +191,9 @@ public class BebopActivity extends Activity {
 
     static int count = 0;
     private void initIHM() {
+
+        hideAutoMode();
+        showManualMode();
         mVideoView = (H264VideoView) findViewById(R.id.videoView);
 
         findViewById(R.id.emergencyBt).setOnClickListener(new View.OnClickListener() {
@@ -202,9 +205,14 @@ public class BebopActivity extends Activity {
         mTakeOffLandBt = (Button) findViewById(R.id.takeOffOrLandBt);
         mTakeOffLandBt.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+
                 switch (mBebopDrone.getFlyingState()) {
                     case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_LANDED:
-                        mBebopDrone.takeOff();
+                        if(mManual)
+                            mBebopDrone.takeOff();
+                        else
+                            moveDrone(4);
+
                         break;
                     case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_FLYING:
                     case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING:
@@ -435,21 +443,60 @@ public class BebopActivity extends Activity {
         });
 
 
-        findViewById(R.id.testBtn).setOnClickListener(new View.OnClickListener() {
+
+
+        findViewById(R.id.manualBt).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EditText ed = findViewById(R.id.txtDistancia);
-                int dis = Integer.parseInt(ed.getText().toString());
-                moveDrone(dis);
-                /*
-                mBebopDrone.setGaz((byte) dis);
-                mBebopDrone.setGaz((byte) 0);
-                mBebopDrone.setRoll((byte) dis);
-                mBebopDrone.setFlag((byte) 1);
-                mBebopDrone.setRoll((byte) 0);
-                mBebopDrone.setFlag((byte) 0);
+                hideAutoMode();
+                showManualMode();
 
-                */
+            }
+        });
+
+        findViewById(R.id.autoBt).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideManualMode();
+                showAutoMode();
+
+            }
+        });
+
+        ((RadioGroup)findViewById(R.id.pathTypes)).setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId){
+                    case R.id.customPath:
+                        mPath = 0;
+                        break;
+                    case R.id.linePath:
+                        mPath = 1;
+                        break;
+                    case R.id.gridPath:
+                        mPath = 2;
+                        break;
+                }
+            }
+        });
+
+        ((SeekBar)findViewById(R.id.durationSeekBar)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                mPathDuration = progress;
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
 
             }
         });
@@ -458,7 +505,76 @@ public class BebopActivity extends Activity {
         mBatteryLabel = (TextView) findViewById(R.id.batteryLabel);
     }
 
+    private void showAutoMode() {
+        mAuto = true;
+        findViewById(R.id.manualBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.pathTypelbl).setVisibility(View.VISIBLE);
+        findViewById(R.id.pathTypes).setVisibility(View.VISIBLE);
+        findViewById(R.id.pathDurationlbl).setVisibility(View.VISIBLE);
+        findViewById(R.id.durationSeekBar).setVisibility(View.VISIBLE);
+    }
+
+
+    private void hideAutoMode() {
+        mAuto = false;
+        findViewById(R.id.manualBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.pathTypelbl).setVisibility(View.INVISIBLE);
+        findViewById(R.id.pathTypes).setVisibility(View.INVISIBLE);
+        findViewById(R.id.pathDurationlbl).setVisibility(View.INVISIBLE);
+        findViewById(R.id.durationSeekBar).setVisibility(View.INVISIBLE);
+    }
+
+    private void hideManualMode(){
+        mManual = false;
+        mStreamOn = false;
+
+        findViewById(R.id.autoBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.videoView).setVisibility(View.INVISIBLE);
+
+        findViewById(R.id.takePictureBt).setVisibility(View.INVISIBLE);
+
+
+        findViewById(R.id.forwardBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.gazUpBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.rollLeftBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.yawLeftBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.rollRightBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.yawRightBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.backBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.gazDownBt).setVisibility(View.INVISIBLE);
+        findViewById(R.id.downloadBt).setVisibility(View.INVISIBLE);
+
+
+    }
+
+
+    private void showManualMode(){
+
+        mManual = true;
+        mStreamOn = true;
+        findViewById(R.id.autoBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.videoView).setVisibility(View.VISIBLE);
+        findViewById(R.id.takePictureBt).setVisibility(View.VISIBLE);
+
+        findViewById(R.id.forwardBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.gazUpBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.rollLeftBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.yawLeftBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.rollRightBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.yawRightBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.backBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.gazDownBt).setVisibility(View.VISIBLE);
+        findViewById(R.id.downloadBt).setVisibility(View.VISIBLE);
+
+
+    }
+
+    private String getDif(long ini){
+        return ":"+(System.currentTimeMillis()- ini)/1000;
+    }
     private void moveDrone(final int dist){
+
+
 
 
         Handler handler = new Handler(Looper.getMainLooper());
@@ -466,72 +582,129 @@ public class BebopActivity extends Activity {
         Runnable[] runnables= new Runnable[10];
 
 
-        Toast.makeText(BebopActivity.this, "Subiendo", Toast.LENGTH_SHORT).show();
-        mBebopDrone.setGaz((byte) 50);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
 
+                Toast.makeText(BebopActivity.this, "Path Completed", Toast.LENGTH_SHORT).show();
+
+
+            }
+        }, 1000);
 
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(BebopActivity.this, "Para", Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(BebopActivity.this, ProcessingActivty.class);
+                startActivity(intent);
+
+
+            }
+        }, 3000);
+
+
+        if(1==1) return;
+        int t=0;
+        final long inicio=System.currentTimeMillis();
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+                Toast.makeText(BebopActivity.this, "Iniciando recorrido"+getDif(inicio), Toast.LENGTH_SHORT).show();
+
+
+            }
+        }, t);
+
+        t+=1500;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Arrancando"+getDif(inicio), Toast.LENGTH_SHORT).show();
+                mBebopDrone.takeOff();
+            }
+        }, t);
+
+        t+=3000;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Subiendo"+getDif(inicio), Toast.LENGTH_SHORT).show();
+                mBebopDrone.setGaz((byte) 50);
+            }
+        },t);
+
+
+
+        t+= 3000;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BebopActivity.this, "Para"+getDif(inicio), Toast.LENGTH_SHORT).show();
                 mBebopDrone.setGaz((byte) 0);
             }
-        },3000);
+        },t);
 
-
+        t+=3000;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(BebopActivity.this, "Derecha", Toast.LENGTH_SHORT).show();
+                Toast.makeText(BebopActivity.this, "Derecha"+getDif(inicio), Toast.LENGTH_SHORT).show();
                 mBebopDrone.setRoll((byte) 50);
                 mBebopDrone.setFlag((byte) 1);
             }
-        },5000);
+        },t);
 
-
+        t+=3000;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(BebopActivity.this, "Para", Toast.LENGTH_SHORT).show();
+                Toast.makeText(BebopActivity.this, "Para"+getDif(inicio), Toast.LENGTH_SHORT).show();
                 mBebopDrone.setRoll((byte) 0);
                 mBebopDrone.setFlag((byte) 0);
             }
-        }, 7000);
+        }, t);
 
+        t+=3000;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(BebopActivity.this, "Derecha", Toast.LENGTH_SHORT).show();
+                Toast.makeText(BebopActivity.this, "Derecha"+getDif(inicio), Toast.LENGTH_SHORT).show();
                 mBebopDrone.setRoll((byte) 50);
                 mBebopDrone.setFlag((byte) 1);
 
             }
-        }, 9000);
+        }, t);
 
+        t+=3000;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(BebopActivity.this, "Para", Toast.LENGTH_SHORT).show();
+                Toast.makeText(BebopActivity.this, "Para"+getDif(inicio), Toast.LENGTH_SHORT).show();
                 mBebopDrone.setRoll((byte) 0);
                 mBebopDrone.setFlag((byte) 0);
             }
-        },11000);
+        },t);
 
+        t+=3000;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(BebopActivity.this, "Bajando", Toast.LENGTH_SHORT).show();
+                Toast.makeText(BebopActivity.this, "Bajando"+getDif(inicio), Toast.LENGTH_SHORT).show();
                 mBebopDrone.setGaz((byte) -50);
             }
-        },13000);
+        },t);
 
+        t+=3000;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(BebopActivity.this, "Para", Toast.LENGTH_SHORT).show();
+                Toast.makeText(BebopActivity.this, "Para"+getDif(inicio), Toast.LENGTH_SHORT).show();
                 mBebopDrone.setGaz((byte) 0);
             }
-        },18000);
+        },t);
 
 
         /*
@@ -550,20 +723,23 @@ public class BebopActivity extends Activity {
             }, 300);
         }
         */
+        t+=3000;
         handler.postDelayed(new Runnable() {
             public void run() {
                 // acciones que se ejecutan tras los milisegundos
-                Toast.makeText(BebopActivity.this, "Para:"+dist, Toast.LENGTH_SHORT).show();
+                Toast.makeText(BebopActivity.this, "Atteriza:"+getDif(inicio), Toast.LENGTH_SHORT).show();
                 mBebopDrone.setRoll((byte) 0);
                 mBebopDrone.setFlag((byte) 0);
+                mBebopDrone.land();
             }
-        }, 2000);
+        }, t);
 
 
 
 
 
     }
+
 
     private final BebopDrone.Listener mBebopListener = new BebopDrone.Listener() {
         @Override
@@ -622,7 +798,10 @@ public class BebopActivity extends Activity {
 
         @Override
         public void onFrameReceived(ARFrame frame) {
-            mVideoView.displayFrame(frame);
+            //if( mStreamOn ){
+                mVideoView.displayFrame(frame);
+            //}
+
         }
 
         @Override

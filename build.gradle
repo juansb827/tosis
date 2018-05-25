@@ -1,16 +1,3 @@
-// This file provides basic support for building the TensorFlow demo
-// in Android Studio with Gradle.
-//
-// Note that Bazel is still used by default to compile the native libs,
-// and should be installed at the location noted below. This build file
-// automates the process of calling out to it and copying the compiled
-// libraries back into the appropriate directory.
-//
-// Alternatively, experimental support for Makefile builds is provided by
-// setting buildWithMake below to true. This will allow building the demo
-// on Windows machines, but note that full equivalence with the Bazel
-// build is not yet guaranteed. See comments below for caveats and tips
-// for speeding up the build, such as as enabling ccache.
 
 
 project.buildDir = 'gradleBuild'
